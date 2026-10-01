@@ -50,6 +50,9 @@ pressure.
   modifyAll and viewAll all parsed.
 - **Clean or flagged verdict** — counts plus capped grant samples in
   human and JSON output.
+- **Compliance reports** — `fls report` audits up to 20 profiles in one
+  run and exports CSV or JSON for auditors, with skipped profiles
+  listed honestly instead of hidden.
 - **Zero private imports** — only shells out to public `agentia`
   commands.
 
@@ -93,6 +96,12 @@ agentia fls check --file ./Admin.profile-meta.xml --json
 agentia fls check --file ./Site.profile-meta.xml --risky guest --risky partner --json
 ```
 
+### 4. Compliance report across profiles
+
+```sh
+agentia fls report --profile Admin --profile "Guest User" --source-credential-id a11 --source-org-id 00D --format csv --output ./fls-audit.csv --json
+```
+
 ## Live Demo Workflow
 
 Verified live on a synthetic Guest style profile:
@@ -103,6 +112,8 @@ Verified live on a synthetic Guest style profile:
 2. Same scan on a locked down profile -> clean with scanned counts
 3. Org mode attempted live; heavy payloads can time out at the gateway,
    in which case file mode carries the demo deterministically
+4. agentia fls report --profile Admin --source-credential-id ... --source-org-id ... --format csv --json
+   -> per profile field plus object counts, risky grants piped, skips listed
 ```
 
 ## Command Reference
@@ -121,6 +132,23 @@ Verified live on a synthetic Guest style profile:
 
 One of `--profile` or `--file` is required. Org mode additionally
 needs credential plus org IDs.
+
+### `agentia fls report`
+
+| Flag | Description |
+|---|---|
+| `-p, --profile <name>` | Profile API name, repeatable (at least one required, max 20) |
+| `--source-credential-id` | Org credential ID |
+| `--source-org-id` | Org ID |
+| `--pipeline-id` | Pipeline ID scoping gateway calls |
+| `--risky <sub>` | Risky name substring, repeatable (default `guest`) |
+| `--format csv\|json` | Export file format (default `csv`) |
+| `-o, --output <path>` | Output file path (default `./fls-audit-<stamp>.<format>`) |
+| `-j, --json` | Machine readable JSON output |
+
+Writes the audit file plus a JSON summary with per profile counts and
+a `skipped` list naming every profile that failed or came back empty.
+Read only, never changes permissions.
 
 ## Configuration
 
@@ -144,6 +172,11 @@ agentia fls check
   -> regex scan of fieldPermissions plus objectPermissions
   -> risky substring match per grant
   -> flagged / clean verdict plus JSON
+
+agentia fls report
+  -> content get per profile (up to 20)
+  -> same scan plus risky match per profile
+  -> CSV or JSON file plus skipped list
 ```
 
 ## Security
@@ -170,8 +203,9 @@ FLS Guard (this plugin)
   |- fetcher  -> content get or file read
   |- scanner  -> field plus object grant parsing
   |- matcher  -> risky substring flags
-       |
-Verdict plus grants plus JSON
+  |- reporter -> multi profile CSV or JSON export
+        |
+Verdict plus grants plus JSON, report file for auditors
 ```
 
 ## Hackathon Fit
