@@ -108,7 +108,7 @@ Verified live on a synthetic Guest style profile:
 
 ```text
 1. agentia fls check --file guest.xml --json
-   -> flagged: 2 risky grants (Account.Secret__c readable, Account allowRead)
+   -> flagged: 1 risky grant (Account.Secret__c readable into guest named profile)
 2. Same scan on a locked down profile -> clean with scanned counts
 3. Org mode attempted live; heavy payloads can time out at the gateway,
    in which case file mode carries the demo deterministically
